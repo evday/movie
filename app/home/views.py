@@ -35,3 +35,7 @@ def comments():
 @home.route("/loginlog")
 def loginlog():
     return render_template ("home/loginlog.html")
+
+@home.route("/moviefav")
+def loginlog():
+    return render_template ("home/moviefav.html")
