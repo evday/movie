@@ -39,3 +39,11 @@ def loginlog():
 @home.route("/moviefav")
 def loginlog():
     return render_template ("home/moviefav.html")
+
+@home.route("/")
+def index():
+    return render_template ("home/index.html")
+
+@home.route("/")
+def animation():
+    return render_template ("home/animation.html")
