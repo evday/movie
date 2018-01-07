@@ -27,3 +27,7 @@ def user():
 @home.route("/pwd")
 def pwd():
     return render_template ("home/pwd.html")
+
+@home.route("/comments")
+def comments():
+    return render_template ("home/comments.html")
