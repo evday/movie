@@ -31,3 +31,7 @@ def pwd():
 @home.route("/comments")
 def comments():
     return render_template ("home/comments.html")
+
+@home.route("/loginlog")
+def loginlog():
+    return render_template ("home/loginlog.html")
