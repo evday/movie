@@ -2,15 +2,7 @@
 #-*- coding:utf-8 -*-
 #date:"2018-01-07,17:14"
 import datetime
-
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-
-app = Flask (__name__)
-app.config ["SQLALCHEMY_DATABASE_URL"] = "mysql://root:@localhost:3306/movie?charset=utf8"
-app.config ["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
-
-db = SQLAlchemy (app)
+from . import db
 
 
 class User (db.Model):
