@@ -21,15 +21,15 @@ def login():
 def pwd():
     return render_template("admin/pwd,html")
 
-@admin.route("/tag/add")
+@admin.route("/tag/add/")
 def tag_add():
     return render_template("admin/tag_add,html")
 
-@admin.route("/tag/list")
+@admin.route("/tag/list/")
 def tag_list():
     return render_template("admin/tag_list,html")
 
-@admin.route("/movie/add")
+@admin.route("/movie/add/")
 def movie_add():
     return render_template("admin/movie_add,html")
 
@@ -37,26 +37,38 @@ def movie_add():
 def movie_list():
     return render_template("admin/movie_add,html")
 
-@admin.route("/preview/add")
+@admin.route("/preview/add/")
 def preview_add():
     return render_template("admin/preview_add,html")
 
-@admin.route("/preview/list")
+@admin.route("/preview/list/")
 def preview_list():
     return render_template("admin/preview_add,html")
 
-@admin.route("/user/list")
+@admin.route("/user/list/")
 def user_list():
     return render_template("admin/user_list,html")
 
-@admin.route("/user/view")
+@admin.route("/user/view/")
 def user_view():
     return render_template("admin/user_view,html")
 
-@admin.route("/comment/list")
+@admin.route("/comment/list/")
 def comment_list():
     return render_template("admin/comment_list,html")
 
-@admin.route("/moviefav/list")
+@admin.route("/moviefav/list/")
 def moviefav_list():
     return render_template("admin/moviefav_list,html")
+
+@admin.route("/oplog/list/")
+def oplog_list():
+    return render_template("admin/oplog_list,html")
+
+@admin.route("/adminloginlog/list/")
+def adminloginlog_list():
+    return render_template("admin/adminloginlog_list,html")
+
+@admin.route("/userloginlog/list/")
+def userloginlog_list():
+    return render_template("admin/userloginlog_list,html")
