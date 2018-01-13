@@ -6,8 +6,8 @@ from flask import render_template,redirect,url_for,session,request
 from flask import flash
 from . import admin
 from .. import db
-from .forms import LoginForm
-from ..models import Admin,Adminlog
+from .forms import LoginForm,TagForm
+from ..models import Admin,Adminlog,Tag
 
 
 def admin_login_req(f):
@@ -60,6 +60,20 @@ def pwd():
 @admin.route("/tag/add/")
 @admin_login_req
 def tag_add():
+    form = TagForm()
+    if form.validate_on_submit():
+        data = form.data
+        tag = Tag.query.filter_by(name = data.get("name")).count()
+        if tag:
+            flash("标签已存在",category = "err")
+            return redirect(url_for("admin.tag_add"))
+        tag = Tag(
+            name = data.get("name")
+        )
+        db.session.add(tag)
+        db.session.commit()
+        flash("添加成功",category = "ok")
+        return redirect(url_for("admin.tag_add"))
     return render_template("admin/tag_add,html")
 
 @admin.route("/tag/list/")
