@@ -4,9 +4,6 @@
 from flask import redirect,render_template
 from . import home
 
-@home.route("/")
-def index():
-    return "<h1 style='color:green'>this is home</h1>"
 
 @home.route("/login")
 def login():
@@ -37,7 +34,7 @@ def loginlog():
     return render_template ("home/loginlog.html")
 
 @home.route("/moviefav")
-def loginlog():
+def moviefav():
     return render_template ("home/moviefav.html")
 
 @home.route("/")

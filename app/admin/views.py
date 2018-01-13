@@ -1,35 +1,74 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
 #date:"2018-01-07,17:09"
-from flask import render_template,redirect,url_for
+from functools import wraps
+from flask import render_template,redirect,url_for,session,request
+from flask import flash
 from . import admin
+from .. import db
+from .forms import LoginForm
+from ..models import Admin,Adminlog
+
+
+def admin_login_req(f):
+    @wraps(f)
+    def decorate_function(*args,**kwargs):
+        if not session.get("user_info"):
+            return redirect(url_for("admin.login",next = request.url))
+        return f(*args,**kwargs)
+    return decorate_function
+
 
 @admin.route("/")
+@admin_login_req
 def index():
+
     return render_template("admin/index.html")
 
 @admin.route("/login")
 def login():
-    return render_template("admin/login,html")
+    form = LoginForm()
+    if form.validate_on_submit():
+        data = form.data
+        admin = Admin.query.filter_by(name = data.get("account")).first()
+        if not admin.check_pwd(data.get("pwd")):
+            flash("密码错误!",category = "err")
+            return redirect(url_for("admin.login"))
+        session["admin"] = data.get("account")
+        session["admin_id"] = admin.id
+        adminlog = Adminlog(
+            admin_id = admin.id,
+            ip = request.remote_addr, #获取Ip
+        )
+        db.session.add(adminlog)
+        db.session.commit()
+    return render_template("admin/login,html",form=form)
 
 @admin.route("/logout")
-def login():
+@admin_login_req
+def logout():
+    session.pop("admin")
+    session.pop("admin_id")
     return redirect(url_for("admin.login"))
 
 
 @admin.route("/pwd")
+@admin_login_req
 def pwd():
     return render_template("admin/pwd,html")
 
 @admin.route("/tag/add/")
+@admin_login_req
 def tag_add():
     return render_template("admin/tag_add,html")
 
 @admin.route("/tag/list/")
+@admin_login_req
 def tag_list():
     return render_template("admin/tag_list,html")
 
 @admin.route("/movie/add/")
+@admin_login_req
 def movie_add():
     return render_template("admin/movie_add,html")
 

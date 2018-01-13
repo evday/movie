@@ -3,7 +3,9 @@
 #date:"2018-01-07,17:10"
 from flask_wtf import FlaskForm
 from wtforms import StringField,PasswordField,SubmitField
-from wtforms.validators import DataRequired
+from wtforms.validators import DataRequired,ValidationError
+
+from ..models import Admin
 
 class LoginForm(FlaskForm):
     """
@@ -17,7 +19,6 @@ class LoginForm(FlaskForm):
         description = "账号",
         render_kw = {
             "class":"form-control",
-            "required":"required",
             "placeholder":"请输入账号！"
         }
     )
@@ -29,7 +30,6 @@ class LoginForm(FlaskForm):
         description = "密码",
         render_kw = {
             "class":"form-control",
-            "required":"required",
             "placeholder":"请输入密码！"
         }
     )
@@ -39,3 +39,10 @@ class LoginForm(FlaskForm):
             "class":"btn btn-primary btn-block btn-flat"
         }
     )
+    def validate_account(self,field):
+        account = field.data
+        admin = Admin.query.filter_by(name=account).count()
+        if not admin:
+            raise ValidationError("账号不存在！")
+
+
