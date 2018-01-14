@@ -10,8 +10,8 @@ from flask import flash
 from werkzeug.utils import secure_filename
 from . import admin
 from .. import db,create_app
-from .forms import LoginForm,TagForm,MovieForm
-from ..models import Admin,Adminlog,Tag,Movie
+from .forms import LoginForm,TagForm,MovieForm,PreviewForm
+from ..models import Admin,Adminlog,Tag,Movie,Preview
 app = create_app()
 
 
@@ -179,6 +179,7 @@ def movie_del(id = None):
     flash("删除电影成功!","ok")
     return redirect(url_for("admin.movie_list",page=1))
 
+#修改电影
 @admin.route("/movie/edit/<int:id>/",methods = ["GET","POST"])
 @admin_login_req
 def movie_edit(id=None):
@@ -202,12 +203,12 @@ def movie_edit(id=None):
         if form.url.data.filename != "":
             file_url =secure_filename(form.url.data.filename)
             movie.url = change_filename(file_url)
-            form.url.data.save(app.config["UP_DIR"])
+            form.url.data.save(app.config["UP_DIR"]+ movie.url)
 
         if form.logo.data.filename != "":
             file_logo = secure_filename(form.logo.data.filename)
             movie.logo = change_filename(file_logo)
-            form.logo.data.save(app.config["UP_DIR"])
+            form.logo.data.save(app.config["UP_DIR"]+ movie.logo)
         movie.star = data.get("star"),
         movie.tag_id = data.get("tag_id"),
         movie.info = data.get("info"),
@@ -220,13 +221,62 @@ def movie_edit(id=None):
         flash("修改电影成功!","ok")
         return redirect(url_for("admin.movie_edit",id=movie.id))
     return render_template("admin/movie_edit.html",form=form,movie=movie)
-@admin.route("/preview/add/")
-def preview_add():
-    return render_template("admin/preview_add,html")
 
-@admin.route("/preview/list/")
-def preview_list():
-    return render_template("admin/preview_add,html")
+#添加电影预告
+@admin.route("/preview/add/",methods = ["GET","POST"])
+def preview_add():
+    form = PreviewForm()
+    if form.validate_on_submit():
+        data = form.data
+        file_logo = secure_filename(form.logo.data.filename)
+        if not os.path.exists(app.config["UP_DIR"]):
+            os.makedirs(app.config["UP_DIR"])
+            os.chmod(app.config["UP_DIR"],"rw")
+            logo = change_filename(file_logo)
+            form.logo.data.save(app.config["UP_DIR"]+logo)
+            preview= Preview(
+                title = data.get("title"),
+                logo = logo
+            )
+            db.session.add(preview)
+            db.session.commit()
+            flash("添加预告成功!")
+            return redirect(url_for("admin.preview_add"))
+    return render_template("admin/preview_add,html",form = form)
+#电影预告列表
+@admin.route("/preview/list/<int:page>",methods = ["GET"])
+def preview_list(page = None):
+    if not page:page = 1
+    page_data = Preview.query.order_by(Preview.addtime.desc()).paginate(page = page,per_page = 10)
+    return render_template("admin/preview_add,html",page_data = page_data)
+#电影预告删除
+@admin.route("/preview/list/<int:id>/",methods = ["GET"])
+def preview_del(id=None):
+    preview = Preview.query.get_or_404(int(id))
+    db.session.add(preview)
+    db.session.commit()
+    flash("删除电影预告成功!",'ok')
+    return redirect(url_for("admin.preview_list",page=1))
+#修改电影预告
+@admin.route("/preview/edit/<int:id>/",methods = ["GET"])
+def preview_edit(id):
+    form = PreviewForm()
+    form.logo.validators = [] #编辑的时候数据里是有值得，这里不需要做判断
+    preview = Preview.query.get_or_404(int(id))
+    if request.method == "GET":
+        form.title.data = preview.title
+    if form.validate_on_submit():
+        data = form.data
+        if form.logo.data.filename != "":
+            file_logo = secure_filename(form.logo.data.filename)
+            preview.logo = change_filename(file_logo)
+            form.logo.data.save(app.config["UP_DIR"]+preview.log)
+        preview.title = data.get("title")
+        db.session.add(preview)
+        db.session.commit()
+        flash("修改预告成功!",'ok')
+        return redirect(url_for("admin.preview_edit",id=id))
+    return render_template("admin/preview_eidt.html",form=form,preview=preview)
 
 @admin.route("/user/list/")
 def user_list():
