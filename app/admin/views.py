@@ -11,11 +11,11 @@ from werkzeug.utils import secure_filename
 from . import admin
 from .. import db,create_app
 from .forms import LoginForm,TagForm,MovieForm,PreviewForm
-from ..models import Admin,Adminlog,Tag,Movie,Preview,User
+from ..models import Admin,Adminlog,Tag,Movie,Preview,User,Comment
 app = create_app()
 
 
-
+#登陆装饰器
 def admin_login_req(f):
     @wraps(f)
     def decorate_function(*args,**kwargs):
@@ -30,12 +30,13 @@ def change_filename(filename):
     filename = datetime.datetime.now().strftime("%Y%m%d%H%M%S")+ str(uuid.uuid4().hex)+file_info[-1]
     return filename
 
+#首页
 @admin.route("/")
 @admin_login_req
 def index():
 
     return render_template("admin/index.html")
-
+#登陆
 @admin.route("/login",methods = ["GET","POST"])
 def login():
     form = LoginForm()
@@ -55,6 +56,7 @@ def login():
         db.session.commit()
     return render_template("admin/login,html",form=form)
 
+#注销
 @admin.route("/logout")
 @admin_login_req
 def logout():
@@ -99,7 +101,7 @@ def tag_add():
     return render_template("admin/tag_add,html")
 
 #删除标签
-@admin.route("/tag/list/<int:id>/",methods = ["GET"])
+@admin.route("/tag/del/<int:id>/",methods = ["GET"])
 @admin_login_req
 def tag_delete(id = None):
     tag = Tag.query.filter_by(id=id).first_or_404()
@@ -170,7 +172,7 @@ def movie_list(page):
     page_data = Movie.qury.join(Tag).filter(Tag.id == Movie.tag_id).order_by(Movie.addtime.desc()).paginate(page = page,per_page = 10)
     return render_template("admin/movie_add,html",page_data=page_data)
 # 删除电影
-@admin.route("/movie/list/<int:id>/",methods = ["GET"])
+@admin.route("/movie/del/<int:id>/",methods = ["GET"])
 @admin_login_req
 def movie_del(id = None):
     movie = Movie.query.get_or_404(int(id))
@@ -252,7 +254,7 @@ def preview_list(page = None):
     page_data = Preview.query.order_by(Preview.addtime.desc()).paginate(page = page,per_page = 10)
     return render_template("admin/preview_add,html",page_data = page_data)
 #电影预告删除
-@admin.route("/preview/list/<int:id>/",methods = ["GET"])
+@admin.route("/preview/del/<int:id>/",methods = ["GET"])
 @admin_login_req
 def preview_del(id=None):
     preview = Preview.query.get_or_404(int(id))
@@ -299,7 +301,7 @@ def user_view(id= None):
     return render_template("admin/user_view,html",user=user)
 
 #删除会员
-@admin.route("/user/view/<int:id>/",methods =["GET"])
+@admin.route("/user/del/<int:id>/",methods =["GET"])
 @admin_login_req
 def user_del(id = None):
     user = User.query.get_or_404(id = int(id))
@@ -308,9 +310,22 @@ def user_del(id = None):
     flash("删除会员成功!","ok")
     return redirect(url_for("admin.user_list",page=1))
 
-@admin.route("/comment/list/")
-def comment_list():
-    return render_template("admin/comment_list,html")
+#评论列表
+@admin.route("/comment/list/<int:page>/")
+def comment_list(page = None):
+    if not page:
+        page = 1
+    page_data = Comment.query.join(Movie).join(User).filter(Comment.movie_id == Movie.id,Comment.user_id == User.id).order_by(Comment.addtime.desc()).paginate(page=page,per_page = 10)
+    return render_template("admin/comment_list,html",page_data = page_data)
+
+#删除评论
+@admin.route("/comment/del/<int:id>/",methods = ["GET"])
+def comment_del(id=None):
+    comment = Comment.query.get_or_404(id=int(id))
+    db.session.add(comment)
+    db.session.commit()
+    flash("删除评论成功!",'ok')
+    return redirect(url_for("admin.comment_list",page=1))
 
 @admin.route("/moviefav/list/")
 def moviefav_list():
