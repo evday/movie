@@ -25,7 +25,7 @@ def index():
 
     return render_template("admin/index.html")
 
-@admin.route("/login")
+@admin.route("/login",methods = ["GET","POST"])
 def login():
     form = LoginForm()
     if form.validate_on_submit():
@@ -57,7 +57,18 @@ def logout():
 def pwd():
     return render_template("admin/pwd,html")
 
-@admin.route("/tag/add/")
+
+# 标签列表
+@admin.route("/tag/list/<int:page>/",methods = ["GET"])
+@admin_login_req
+def tag_list(page = None):
+    if not page:
+        page = 1
+    page_data = Tag.query.order_by(Tag.addtime.desc()).paginate(page=1,per_page = 1)
+
+    return render_template("admin/tag_list,html",page_data=page_data)
+# 增加标签
+@admin.route("/tag/add/",methods = ["GET","POST"])
 @admin_login_req
 def tag_add():
     form = TagForm()
@@ -76,10 +87,40 @@ def tag_add():
         return redirect(url_for("admin.tag_add"))
     return render_template("admin/tag_add,html")
 
-@admin.route("/tag/list/")
+#删除标签
+@admin.route("/tag/list/<int:id>/",methods = ["GET"])
 @admin_login_req
-def tag_list():
-    return render_template("admin/tag_list,html")
+def tag_delete(id = None):
+    tag = Tag.query.filter_by(id=id).first_or_404()
+    db.session.add(tag)
+    db.session.commit()
+    flash("删除标签成功！",category = "ok")
+    return redirect(url_for("admin.tag_list",page=1))
+
+#编辑标签
+@admin.route("/tag/edit/<int:id>/",methods = ["GET","POST"])
+@admin_login_req
+def tag_edit(id):
+    form = TagForm()
+    tag = Tag.query.get_or_404(id)
+    if form.validate_on_submit():
+        data = form.data
+        tag = Tag.query.filter_by(name = data.get("name")).count()
+        if tag:
+            flash("标签名称已存在!",category = "err")
+            return redirect(url_for("admin.tag_edit",id=id))
+        tag.name = data.get("name")
+        db.session.add(tag)
+        db.session.commit()
+        flash("修改标签成功!",category = "ok")
+        return redirect(url_for("admin.tag_edit",id=id))
+    return render_template("admin/tag_edit,html",tag=tag,form=form)
+
+
+
+
+
+
 
 @admin.route("/movie/add/")
 @admin_login_req

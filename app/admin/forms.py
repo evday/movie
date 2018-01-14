@@ -2,10 +2,11 @@
 #-*- coding:utf-8 -*-
 #date:"2018-01-07,17:10"
 from flask_wtf import FlaskForm
-from wtforms import StringField,PasswordField,SubmitField
+from wtforms import StringField,PasswordField,SubmitField,FileField,TextAreaField,SelectField
 from wtforms.validators import DataRequired,ValidationError
 
-from ..models import Admin
+from ..models import Admin,Tag
+
 
 class LoginForm(FlaskForm):
     """
@@ -56,9 +57,10 @@ class TagForm(FlaskForm):
             "placeholder":"请输入标签名称！",
         }
     ),
-    pwd = SubmitField(
-        "添加",
+    submit = SubmitField(
+        "提交",
         render_kw = {
             "class":"btn btn-primary"
         }
     )
+
