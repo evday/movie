@@ -11,7 +11,7 @@ from werkzeug.utils import secure_filename
 from . import admin
 from .. import db,create_app
 from .forms import LoginForm,TagForm,MovieForm,PreviewForm
-from ..models import Admin,Adminlog,Tag,Movie,Preview
+from ..models import Admin,Adminlog,Tag,Movie,Preview,User
 app = create_app()
 
 
@@ -224,6 +224,7 @@ def movie_edit(id=None):
 
 #添加电影预告
 @admin.route("/preview/add/",methods = ["GET","POST"])
+@admin_login_req
 def preview_add():
     form = PreviewForm()
     if form.validate_on_submit():
@@ -245,12 +246,14 @@ def preview_add():
     return render_template("admin/preview_add,html",form = form)
 #电影预告列表
 @admin.route("/preview/list/<int:page>",methods = ["GET"])
+@admin_login_req
 def preview_list(page = None):
     if not page:page = 1
     page_data = Preview.query.order_by(Preview.addtime.desc()).paginate(page = page,per_page = 10)
     return render_template("admin/preview_add,html",page_data = page_data)
 #电影预告删除
 @admin.route("/preview/list/<int:id>/",methods = ["GET"])
+@admin_login_req
 def preview_del(id=None):
     preview = Preview.query.get_or_404(int(id))
     db.session.add(preview)
@@ -259,9 +262,10 @@ def preview_del(id=None):
     return redirect(url_for("admin.preview_list",page=1))
 #修改电影预告
 @admin.route("/preview/edit/<int:id>/",methods = ["GET"])
+@admin_login_req
 def preview_edit(id):
     form = PreviewForm()
-    form.logo.validators = [] #编辑的时候数据里是有值得，这里不需要做判断
+    form.logo.validators = [] #编辑的时候数据里是有值的，这里不需要做判断
     preview = Preview.query.get_or_404(int(id))
     if request.method == "GET":
         form.title.data = preview.title
@@ -278,13 +282,31 @@ def preview_edit(id):
         return redirect(url_for("admin.preview_edit",id=id))
     return render_template("admin/preview_eidt.html",form=form,preview=preview)
 
-@admin.route("/user/list/")
-def user_list():
-    return render_template("admin/user_list,html")
+#会员列表
+@admin.route("/user/list/<int:page>/",methods = ["GET"])
+@admin_login_req
+def user_list(page = None):
+    if not page:
+        page = 1
+    page_data = User.query.order_by(User.addtime.desc()).paginate(page=page,per_page = 10)
+    return render_template("admin/user_list,html",page_data = page_data)
 
-@admin.route("/user/view/")
-def user_view():
-    return render_template("admin/user_view,html")
+#查看会员
+@admin.route("/user/view/<int:id>/",methods = ["GET"])
+@admin_login_req
+def user_view(id= None):
+    user = User.query.get_or_404(id = int(id))
+    return render_template("admin/user_view,html",user=user)
+
+#删除会员
+@admin.route("/user/view/<int:id>/",methods =["GET"])
+@admin_login_req
+def user_del(id = None):
+    user = User.query.get_or_404(id = int(id))
+    db.session.add(user)
+    db.session.commit()
+    flash("删除会员成功!","ok")
+    return redirect(url_for("admin.user_list",page=1))
 
 @admin.route("/comment/list/")
 def comment_list():
