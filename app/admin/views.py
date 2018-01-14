@@ -11,7 +11,7 @@ from werkzeug.utils import secure_filename
 from . import admin
 from .. import db,create_app
 from .forms import LoginForm,TagForm,MovieForm,PreviewForm
-from ..models import Admin,Adminlog,Tag,Movie,Preview,User,Comment
+from ..models import Admin,Adminlog,Tag,Movie,Preview,User,Comment,Moviecol
 app = create_app()
 
 
@@ -312,6 +312,7 @@ def user_del(id = None):
 
 #评论列表
 @admin.route("/comment/list/<int:page>/")
+@admin_login_req
 def comment_list(page = None):
     if not page:
         page = 1
@@ -320,6 +321,7 @@ def comment_list(page = None):
 
 #删除评论
 @admin.route("/comment/del/<int:id>/",methods = ["GET"])
+@admin_login_req
 def comment_del(id=None):
     comment = Comment.query.get_or_404(id=int(id))
     db.session.add(comment)
@@ -327,10 +329,22 @@ def comment_del(id=None):
     flash("删除评论成功!",'ok')
     return redirect(url_for("admin.comment_list",page=1))
 
-@admin.route("/moviefav/list/")
-def moviefav_list():
-    return render_template("admin/moviefav_list,html")
+#电影收藏列表
+@admin.route("/moviefav/list/<int:page>/",methods = ["GET"])
+def moviefav_list(page=None):
+    if not page:
+        page =1
+    page_data = Moviecol.query.join(Movie).join(User).filter(Moviecol.movie_id == Movie.id,Moviecol.user_id == User.id).order_by(Moviecol.addtime.desc()).paginate(page=page,per_page = 10)
+    return render_template("admin/moviefav_list,html",page_data = page_data)
 
+#电影收藏删除
+@admin.route("/moviefav/del/<int:id>/",methods = ["GET"])
+def moviefav_del(id = None):
+    moviefav = Moviecol.query.get_or_404(id = int(id))
+    db.session.add(moviefav)
+    db.session.commit()
+    flash("删除收藏成功!","ok")
+    return redirect(url_for("admin.moviefav_list",page =1 ))
 @admin.route("/oplog/list/")
 def oplog_list():
     return render_template("admin/oplog_list,html")
