@@ -2,7 +2,7 @@
 #-*- coding:utf-8 -*-
 #date:"2018-01-07,17:10"
 from flask_wtf import FlaskForm
-from wtforms import StringField,PasswordField,SubmitField,FileField,TextAreaField,SelectField
+from wtforms import StringField,PasswordField,SubmitField,FileField,TextAreaField,SelectField,SelectMultipleField
 from wtforms.validators import DataRequired,ValidationError
 
 from ..models import Admin,Tag
@@ -120,5 +120,18 @@ class AuthForm(FlaskForm):
         label = "权限地址",validators = [DataRequired("请输入权限地址!")],
         description = "权限地址",
         render_kw = {"class":"form-control","placeholder":"请输入权限地址!"}
+    )
+    submit = SubmitField("提交",render_kw = {"class":"btn btn-primary"})
+
+class RoleForm(FlaskForm):
+    name = StringField(
+        label = "角色名称",validators = [DataRequired("请输入角色名称!")],
+        description = "角色名称",
+        render_kw = {"class":"form-control","placeholder":"请输入角色名称"}
+    )
+    auths = SelectMultipleField(
+        label = "权限列表",validators = [DataRequired("请选择权限!")],
+        description = "权限列表",
+        render_kw = {"class":"form-control"}
     )
     submit = SubmitField("提交",render_kw = {"class":"btn btn-primary"})
