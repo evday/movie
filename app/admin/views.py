@@ -5,13 +5,14 @@ import os
 import uuid
 import datetime
 from functools import wraps
-from flask import render_template,redirect,url_for,session,request
+from werkzeug.security import generate_password_hash
+from flask import render_template,redirect,url_for,session,request,abort
 from flask import flash
 from werkzeug.utils import secure_filename
 from . import admin
 from .. import db,create_app
-from .forms import LoginForm,TagForm,MovieForm,PreviewForm,PwdForm,AuthForm,RoleForm
-from ..models import Admin,Adminlog,Tag,Movie,Preview,User,Comment,Moviecol,Auth,Role
+from .forms import LoginForm,TagForm,MovieForm,PreviewForm,PwdForm,AuthForm,RoleForm,AdminForm
+from ..models import Adminlog,Tag,Movie,Preview,User,Comment,Moviecol,Auth,Role,Admin,Oplog,Userlog
 app = create_app()
 
 
@@ -21,6 +22,25 @@ def admin_login_req(f):
     def decorate_function(*args,**kwargs):
         if not session.get("user_info"):
             return redirect(url_for("admin.login",next = request.url))
+        return f(*args,**kwargs)
+    return decorate_function
+
+
+#权限验证装饰器
+def admin_auth(f):
+    @wraps(f)
+    def decorate_function(*args,**kwargs):
+        admin = Admin.query.join(Role).filter(Role.id==Admin.role_id,Admin.id == session.get("admin_id")).first()
+        auths = admin.role.auths
+        auths = list(map(lambda x:int(x),auths.split(",")))
+        auth_list = Auth.query.all()#所有的权限
+        # for val in auths
+        # for v in auth_list
+        # 条件 val == v.id 得到结果v.url
+        urls = [v.url for v in auth_list for val in auths if val == v.id]
+        rule = request.url_rule
+        if rule not in urls:
+            abort(404)
         return f(*args,**kwargs)
     return decorate_function
 
@@ -64,7 +84,7 @@ def logout():
     session.pop("admin_id")
     return redirect(url_for("admin.login"))
 
-
+#修改密码
 @admin.route("/pwd")
 @admin_login_req
 def pwd():
@@ -355,17 +375,30 @@ def moviefav_del(id = None):
     db.session.commit()
     flash("删除收藏成功!","ok")
     return redirect(url_for("admin.moviefav_list",page =1 ))
-@admin.route("/oplog/list/")
-def oplog_list():
-    return render_template("admin/oplog_list,html")
 
-@admin.route("/adminloginlog/list/")
-def adminloginlog_list():
-    return render_template("admin/adminloginlog_list,html")
+#操作日志
+@admin.route("/oplog/list/<int:page>/",methods = ['GET'])
+def oplog_list(page = None):
+    if not page:
+        page = 1
+    page_data = Oplog.query.join(Admin).filter(Admin.id == Oplog.admin_id).order_by(Oplog.addtime.desc()).paginate(page = page,per_page = 10)
+    return render_template("admin/oplog_list,html",page_data = page_data)
 
-@admin.route("/userloginlog/list/")
-def userloginlog_list():
-    return render_template("admin/userloginlog_list,html")
+#管理员登录日志
+@admin.route("/adminloginlog/list/<int:page>/",methods = ["GET"])
+def adminloginlog_list(page = None):
+    if not page:
+        page = 1
+    page_data = Adminlog.query.join(Admin).filter(Admin.id == Adminlog.admin_id).order_by(Adminlog.addtime.desc()).paginate(page = page,per_page = 10)
+    return render_template("admin/adminloginlog_list,html",page_data = page_data)
+
+#会员登录日志
+@admin.route("/userloginlog/list/<int:page>/",methods = ["GET"])
+def userloginlog_list(page = None):
+    if not page:
+        page = 1
+    page_data = Userlog.query.join(User).filter(User.id == Userlog.user_id).order_by(Userlog.addtime.desc()).paginate(page=page,per_page = 10)
+    return render_template("admin/userloginlog_list,html",page_data = page_data)
 
 #添加角色
 @admin.route("/role/add/",methods = ["GET","POST"])
@@ -462,15 +495,28 @@ def auth_edit(id = None):
         return redirect(url_for("admin.auth_edit",id = id))
     return render_template("admin.auth_edit.html",form = form,auth =auth )
 
-
-@admin.route("/auth/list/")
-def auth_list():
-    return render_template("admin/auth_list,html")
-
-@admin.route("/admin/add/")
+#添加管理员
+@admin.route("/admin/add/",methods = ["GET","POST"])
 def admin_add():
-    return render_template("admin/admin_add,html")
+    form = AdminForm()
 
-@admin.route("/admin/list/")
-def admin_list():
-    return render_template("admin/admin_list,html")
+    if form.validate_on_submit():
+        data = form.data
+        admin = Admin(
+            name = data.get("name"),
+            pwd = generate_password_hash(data.get("pwd")),
+            role_id= data.get("role_id"),
+            is_super = 1
+        )
+        db.session.add (admin)
+        db.session.commit()
+        flash("添加管理员成功!")
+    return render_template("admin/admin_add,html",form = form)
+
+#管理员列表
+@admin.route("/admin/list/<int:page>/",mehods = ["GET"])
+def admin_list(page = None):
+    if not page:
+        page = 1
+    page_data = Admin.query.join(Role).filter(Admin.role_id == Role.id).order_by(Admin.addtime.desc()).paginate(page=page,per_page = 10)
+    return render_template("admin/admin_list,html",page_data = page_data)
