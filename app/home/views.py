@@ -11,7 +11,7 @@ from werkzeug.utils import secure_filename
 from functools import wraps
 
 from . import home
-from .forms import RegisterForm,LoginForm,UserDetailForm
+from .forms import RegisterForm,LoginForm,UserDetailForm,PwdForm
 from ..models import User,Userlog
 from .. import db,create_app
 app = create_app()
@@ -116,17 +116,35 @@ def user():
         return redirect(url_for("home.user"))
     return render_template ("home/user.html",form=form,user=user)
 
-@home.route("/pwd")
+#修改会员密码
+@home.route("/pwd",methods = ["GET","POST"])
 def pwd():
-    return render_template ("home/pwd.html")
+    form = PwdForm()
+    if form.validate_on_submit():
+        data = form.data
+        user= User.query.filter_by(name = session.get("name")).first()
+        if not user.check_pwd(data.get("old_pwd")):
+            flash("旧密码错误!","err")
+            return redirect("home.pwd")
+        user.pwd = generate_password_hash(data.get("new_pwd"))
+        db.session.add(user)
+        db.session.commit()
+        flash("修改密码成功,请重新登录!","ok")
+        return redirect(url_for("home.logout"))
+    return render_template ("home/pwd.html",form = form)
 
 @home.route("/comments")
 def comments():
     return render_template ("home/comments.html")
 
-@home.route("/loginlog")
-def loginlog():
-    return render_template ("home/loginlog.html")
+
+#会员登录日志
+@home.route("/loginlog/<int:page>/",methods = ["GET"])
+def loginlog(page = None):
+    if not page:
+        page = 1
+    page_data = Userlog.query.filter_by(user_id = int(session.get("user_id"))).order_by(User.addtime.desc()).paginate(page=page,per_page = 10)
+    return render_template ("home/loginlog.html",page_data = page_data)
 
 @home.route("/moviefav")
 def moviefav():

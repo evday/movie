@@ -87,4 +87,12 @@ class UserDetailForm(FlaskForm):
     )
     submit = SubmitField("确认修改!",render_kw = {"btn btn-success"})
 
+#会员密码修改
+class PwdForm(FlaskForm):
+    old_pwd = StringField(label = "旧密码",validators = [DataRequired("请输入旧密码!")],
+                          description = "旧密码",render_kw = {"class":"form-control","placeholder":"请输入旧密码"})
+    new_pwd = StringField(label = "新密码",validators = [DataRequired("请输入新密码!")],
+                          description = "新密码",render_kw = {"class":"form-control","placeholder":"请输入新密码"})
+    submit = SubmitField("提交",render_kw = {"class":"form-control"})
+
 

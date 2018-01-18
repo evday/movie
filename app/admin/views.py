@@ -192,7 +192,7 @@ def movie_add():
         db.session.commit()
         flash("添加电影成功!","ok")
         return redirect(url_for("admin.movie_add"))
-    return render_template("admin/movie_add,html",form=form)
+    return render_template("admin/movie_add.html",form=form)
 #电影列表
 @admin.route("/movie/list/<int:page>/",methods = ["GET"])
 @admin_login_req
@@ -200,7 +200,7 @@ def movie_list(page):
     if page is None:
         page = 1
     page_data = Movie.qury.join(Tag).filter(Tag.id == Movie.tag_id).order_by(Movie.addtime.desc()).paginate(page = page,per_page = 10)
-    return render_template("admin/movie_add,html",page_data=page_data)
+    return render_template("admin/movie_add.html",page_data=page_data)
 # 删除电影
 @admin.route("/movie/del/<int:id>/",methods = ["GET"])
 @admin_login_req
@@ -275,14 +275,14 @@ def preview_add():
             db.session.commit()
             flash("添加预告成功!")
             return redirect(url_for("admin.preview_add"))
-    return render_template("admin/preview_add,html",form = form)
+    return render_template("admin/preview_add.html",form = form)
 #电影预告列表
 @admin.route("/preview/list/<int:page>",methods = ["GET"])
 @admin_login_req
 def preview_list(page = None):
     if not page:page = 1
     page_data = Preview.query.order_by(Preview.addtime.desc()).paginate(page = page,per_page = 10)
-    return render_template("admin/preview_add,html",page_data = page_data)
+    return render_template("admin/preview_add.html",page_data = page_data)
 #电影预告删除
 @admin.route("/preview/del/<int:id>/",methods = ["GET"])
 @admin_login_req
@@ -321,14 +321,14 @@ def user_list(page = None):
     if not page:
         page = 1
     page_data = User.query.order_by(User.addtime.desc()).paginate(page=page,per_page = 10)
-    return render_template("admin/user_list,html",page_data = page_data)
+    return render_template("admin/user_list.html",page_data = page_data)
 
 #查看会员
 @admin.route("/user/view/<int:id>/",methods = ["GET"])
 @admin_login_req
 def user_view(id= None):
     user = User.query.get_or_404(id = int(id))
-    return render_template("admin/user_view,html",user=user)
+    return render_template("admin/user_view.html",user=user)
 
 #删除会员
 @admin.route("/user/del/<int:id>/",methods =["GET"])
@@ -347,7 +347,7 @@ def comment_list(page = None):
     if not page:
         page = 1
     page_data = Comment.query.join(Movie).join(User).filter(Comment.movie_id == Movie.id,Comment.user_id == User.id).order_by(Comment.addtime.desc()).paginate(page=page,per_page = 10)
-    return render_template("admin/comment_list,html",page_data = page_data)
+    return render_template("admin/comment_list.html",page_data = page_data)
 
 #删除评论
 @admin.route("/comment/del/<int:id>/",methods = ["GET"])
@@ -365,7 +365,7 @@ def moviefav_list(page=None):
     if not page:
         page =1
     page_data = Moviecol.query.join(Movie).join(User).filter(Moviecol.movie_id == Movie.id,Moviecol.user_id == User.id).order_by(Moviecol.addtime.desc()).paginate(page=page,per_page = 10)
-    return render_template("admin/moviefav_list,html",page_data = page_data)
+    return render_template("admin/moviefav_list.html",page_data = page_data)
 
 #电影收藏删除
 @admin.route("/moviefav/del/<int:id>/",methods = ["GET"])
@@ -382,7 +382,7 @@ def oplog_list(page = None):
     if not page:
         page = 1
     page_data = Oplog.query.join(Admin).filter(Admin.id == Oplog.admin_id).order_by(Oplog.addtime.desc()).paginate(page = page,per_page = 10)
-    return render_template("admin/oplog_list,html",page_data = page_data)
+    return render_template("admin/oplog_list.html",page_data = page_data)
 
 #管理员登录日志
 @admin.route("/adminloginlog/list/<int:page>/",methods = ["GET"])
@@ -390,7 +390,7 @@ def adminloginlog_list(page = None):
     if not page:
         page = 1
     page_data = Adminlog.query.join(Admin).filter(Admin.id == Adminlog.admin_id).order_by(Adminlog.addtime.desc()).paginate(page = page,per_page = 10)
-    return render_template("admin/adminloginlog_list,html",page_data = page_data)
+    return render_template("admin/adminloginlog_list.html",page_data = page_data)
 
 #会员登录日志
 @admin.route("/userloginlog/list/<int:page>/",methods = ["GET"])
@@ -398,7 +398,7 @@ def userloginlog_list(page = None):
     if not page:
         page = 1
     page_data = Userlog.query.join(User).filter(User.id == Userlog.user_id).order_by(Userlog.addtime.desc()).paginate(page=page,per_page = 10)
-    return render_template("admin/userloginlog_list,html",page_data = page_data)
+    return render_template("admin/userloginlog_list.html",page_data = page_data)
 
 #添加角色
 @admin.route("/role/add/",methods = ["GET","POST"])
@@ -413,7 +413,7 @@ def role_add():
         db.session.add(role)
         db.session.commit()
         flash("添加角色成功!","ok")
-    return render_template("admin/role_add,html",form = form)
+    return render_template("admin/role_add.html",form = form)
 
 #角色列表
 @admin.route("/role/list/<int:page>/",methods = ["GET"])
@@ -421,7 +421,7 @@ def role_list(page = None):
     if not page:
         page = 1
     page_data = Role.query.order_by(Role.addtime.desc()).paginate(page = page,per_page = 10)
-    return render_template("admin/role_list,html",page_data = page_data)
+    return render_template("admin/role_list.html",page_data = page_data)
 #删除角色
 @admin.route("/role/del/<int:id>/",methods = ["GET"])
 def role_del(id = None):
@@ -462,7 +462,7 @@ def auth_add():
         db.session.add(auth)
         db.session.commit()
         flash("添加权限成功!","ok")
-    return render_template("admin/auth_add,html",form = form)
+    return render_template("admin/auth_add.html",form = form)
 
 #删除权限
 @admin.route("/auth/del/<int:id>/",methods = ['GET'])
@@ -511,7 +511,7 @@ def admin_add():
         db.session.add (admin)
         db.session.commit()
         flash("添加管理员成功!")
-    return render_template("admin/admin_add,html",form = form)
+    return render_template("admin/admin_add.html",form = form)
 
 #管理员列表
 @admin.route("/admin/list/<int:page>/",mehods = ["GET"])
@@ -519,4 +519,4 @@ def admin_list(page = None):
     if not page:
         page = 1
     page_data = Admin.query.join(Role).filter(Admin.role_id == Role.id).order_by(Admin.addtime.desc()).paginate(page=page,per_page = 10)
-    return render_template("admin/admin_list,html",page_data = page_data)
+    return render_template("admin/admin_list.html",page_data = page_data)
