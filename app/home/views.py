@@ -12,7 +12,7 @@ from functools import wraps
 
 from . import home
 from .forms import RegisterForm,LoginForm,UserDetailForm,PwdForm
-from ..models import User,Userlog
+from ..models import User,Userlog,Preview,Tag,Movie
 from .. import db,create_app
 app = create_app()
 
@@ -150,13 +150,58 @@ def loginlog(page = None):
 def moviefav():
     return render_template ("home/moviefav.html")
 
+#首页标签筛选
+@home.route("/<int:page>/",methods = ["GET"])
 @home.route("/")
-def index():
-    return render_template ("home/index.html")
+def index(page = None):
+    tags = Tag.query.all()
+    page_data = Movie.query
+    # 标签
+    tid = request.args.get("tid",0)
+    if int(tid) != 0:
+        page_data = page_data.query.filter_by(tag_id = int(tid))
+    #星级
+    star = request.args.get("star",0)
+    if int(star) != 0:
+        page_data = page_data.query.filter_by(star = int(star))
+    #时间
+    time = page_data.args.get("time",0)
+    if int(time) != 0:
+        if int(time) == 1:
+            page_data = page_data.query.order_by(Movie.addtime.desc())
+        else:
+            page_data = page_data.query.order_by(Movie.addtime.asc())
+    #播放量
+    pm = request.args.get("pm",0)
+    if int(pm) != 0:
+        if int(pm) == 1:
+            page_data = page_data.query.order_by(Movie.playnum.desc())
+        else:
+            page_data = page_data.query.order_by(Movie.playnum.asc())
+    #评论量
+    cm = request.args.get("cm",0)
+    if int(cm) != 0:
+        if int(cm) == 1:
+            page_data = page_data.query.order_by(Movie.commentnum.desc())
+        else:
+            page_data = page_data.query.order_by(Movie.commentnum.asc())
+    if not page:
+        page = 1
+    page_data = page_data.paginate(page = page,per_page = 8)
+    p = dict(
+        tid = tid,
+        star = star,
+        time = time,
+        pm = pm,
+        cm = cm
+    )
+    return render_template ("home/index.html",page_data = page_data,p = p,tags = tags)
 
+#上映预告
 @home.route("/animation")
 def animation():
-    return render_template ("home/animation.html")
+    data = Preview.query.all()
+    return render_template ("home/animation.html",data = data)
 
 @home.route("/search")
 def search():
