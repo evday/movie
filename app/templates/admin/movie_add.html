@@ -62,7 +62,7 @@
                                 <font style="color:red">{{ err }}</font>
                             </div>
                             {% endfor %}
-                            <img data-src="holder.js/262x166" style="margin-top:5px;" class="img-responsive"
+                            <img data-src="holder.js/262x166" src="" style="margin-top:5px;" class="img-responsive"
                                  alt="">
                         </div>
                         <div class="form-group">
@@ -166,5 +166,15 @@
         $("#g-3").addClass("active");
         $("#g-3-1").addClass("active");
     });
+</script>
+<script>
+        $("#logo").change(function () {
+    var ele_file = $(this)[0].files[0];//获取当前文件
+    var read = new FileReader();//实例化read对象
+    read.readAsDataURL (ele_file);//获取当前文件的url
+    read.onload = function () {
+        $(".img-responsive").attr("src",this.result);//this.result 就是read.readAsDataURL获取到的url路径
+    }
+});
 </script>
 {% endblock %}

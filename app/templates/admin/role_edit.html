@@ -1,11 +1,20 @@
 {% extends "admin/admin.html" %}
 
+{% block css %}
+<style>
+    #auth_list .col-md-12,#auth_list .col-md-2{
+        padding:0px;
+    }
+
+</style>
+{% endblock %}
+
 {% block content %}
 <section class="content-header">
     <h1>微电影管理系统</h1>
     <ol class="breadcrumb">
-        <li><a href="#"><i class="fa fa-dashboard"></i> 预告管理</a></li>
-        <li class="active">添加预告</li>
+        <li><a href="#"><i class="fa fa-dashboard"></i> 角色管理</a></li>
+        <li class="active">修改角色</li>
     </ol>
 </section>
 <section class="content" id="showcontent">
@@ -13,9 +22,9 @@
         <div class="col-md-12">
             <div class="box box-primary">
                 <div class="box-header with-border">
-                    <h3 class="box-title">添加预告</h3>
+                    <h3 class="box-title">修改角色</h3>
                 </div>
-                <form role="form" method="post" enctype="multipart/form-data">
+                <form role="form" method="post">
                     <div class="box-body">
                         {% for msg in get_flashed_messages(category_filter=["ok"]) %}
                         <div class="alert alert-success alert-dismissible">
@@ -25,24 +34,24 @@
                         </div>
                         {% endfor %}
                         <div class="form-group">
-                            <label for="input_title">{{ form.title.label }}</label>
-                            {{ form.title }}
-                            {% for err in form.title.errors %}
+                            <label for="input_name">{{ form.name.label }}</label>
+                            {{ form.name(value=role.name) }}
+                            {% for err in form.name.errors %}
                             <div class="col-md-12">
                                 <font style="color:red">{{ err }}</font>
                             </div>
                             {% endfor %}
                         </div>
-                        <div class="form-group">
-                            <label for="input_logo">{{ form.logo.label }}</label>
-                            {{ form.logo }}
-                            {% for err in form.logo.errors %}
+                        <div class="form-group" id="auth_list">
+                            <div class="col-md-12">
+                                <label>{{ form.auths.label }}</label>
+                            </div>
+                            {{ form.auths }}
+                            {% for err in form.auths.errors %}
                             <div class="col-md-12">
                                 <font style="color:red">{{ err }}</font>
                             </div>
                             {% endfor %}
-                            <img data-src="holder.js/700x320" src="" style="margin-top:5px;" class="img-responsive"
-                                 alt="" id="img_logo">
                         </div>
                     </div>
                     <div class="box-footer">
@@ -57,21 +66,11 @@
 {% endblock %}
 
 {% block js %}
-
-<script>
-    $("#logo").change(function () {
-    var ele_file = $(this)[0].files[0];//获取当前文件
-    var read = new FileReader();//实例化read对象
-    read.readAsDataURL (ele_file);//获取当前文件的url
-    read.onload = function () {
-        $("#img_logo").attr("src",this.result);//this.result 就是read.readAsDataURL获取到的url路径
-    }
-});
-</script>
 <script>
     $(document).ready(function(){
-        $("#g-4").addClass("active");
-        $("#g-4-1").addClass("active");
+        $("#g-10").addClass("active");
+        $("#g-10-1").addClass("active");
     });
+
 </script>
 {% endblock %}

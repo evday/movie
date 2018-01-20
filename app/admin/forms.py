@@ -5,9 +5,9 @@ from flask_wtf import FlaskForm
 from wtforms import StringField,PasswordField,SubmitField,FileField,TextAreaField,SelectField,SelectMultipleField
 from wtforms.validators import DataRequired,ValidationError,EqualTo
 
-from ..models import Admin,Tag,Role
+from ..models import Admin,Tag,Role,Auth
 
-
+#登录表单
 class LoginForm(FlaskForm):
     """
     管理员登录表单
@@ -45,7 +45,7 @@ class LoginForm(FlaskForm):
         admin = Admin.query.filter_by(name=account).count()
         if not admin:
             raise ValidationError("账号不存在！")
-
+#标签表单
 class TagForm(FlaskForm):
     name = StringField(
         label = "名称",
@@ -56,14 +56,14 @@ class TagForm(FlaskForm):
             "id":"input_name",
             "placeholder":"请输入标签名称！",
         }
-    ),
+    )
     submit = SubmitField(
         "提交",
         render_kw = {
             "class":"btn btn-primary"
         }
     )
-
+#电影表单
 class MovieForm(FlaskForm):
     title = StringField(label = "片名",validators = [DataRequired("请输入片名!")],
                         description = "片名",render_kw = {"class":"form-control","placeholder":"请输入片名!"})
@@ -76,7 +76,7 @@ class MovieForm(FlaskForm):
                        render_kw = {"class":"form-control"})
     tag_id = SelectField(label = "标签",validators = [DataRequired("请选择标签!")],coerce = int,
                          choices = [(v.id,v.name) for v in Tag.query.all()],description = "标签",render_kw = {"class":"form-control"})
-    area = SelectField(label = "地区",validators = [DataRequired("请输入地区!")],description = "地区",
+    area = StringField(label = "地区",validators = [DataRequired("请输入地区!")],description = "地区",
                        render_kw = {"class":"form-control","placeholder":"请输入地区"})
     length = StringField(label = "片长",validators = [DataRequired("请输入片长!")],description = "片长",
                          render_kw = {"class":"form-control","placeholder":"请输入片长!"})
@@ -88,14 +88,14 @@ class MovieForm(FlaskForm):
             "class":"btn btn-primary"
         }
     )
-
+#电影预告表单
 class PreviewForm(FlaskForm):
     title = StringField(label = "预告标题",validators = [DataRequired("请输入预告标题!")],
                         description = "预告标题",render_kw = {"class":"form-control","placeholder":"请输入预告标题!"})
     logo = FileField(label = "预告封面",validators = [DataRequired("请上传预告封面!")],
-                     description = "预告封面")
-    submit = SubmitField("提交",render_kw = "btn btn-primary")
-
+                     description = "预告封面",)
+    submit = SubmitField("提交",render_kw = {"class":"btn btn-primary"})
+#修改密码表单
 class PwdForm(FlaskForm):
     old_pwd = StringField(label = "旧密码",validators = [DataRequired("请输入旧密码!")],
                           description = "旧密码",render_kw = {"class":"form-control","placeholder":"请输入旧密码"})
@@ -109,7 +109,7 @@ class PwdForm(FlaskForm):
         admin = Admin.query.filter_by(name= name).first()
         if not admin.check_pwd(pwd):
             raise ValidationError("旧密码错误!")
-
+#权限表单
 class AuthForm(FlaskForm):
     name = StringField(
         label = "权限名称",validators = [DataRequired("请输入权限名称!")],
@@ -122,7 +122,7 @@ class AuthForm(FlaskForm):
         render_kw = {"class":"form-control","placeholder":"请输入权限地址!"}
     )
     submit = SubmitField("提交",render_kw = {"class":"btn btn-primary"})
-
+#角色表单
 class RoleForm(FlaskForm):
     name = StringField(
         label = "角色名称",validators = [DataRequired("请输入角色名称!")],
@@ -131,11 +131,13 @@ class RoleForm(FlaskForm):
     )
     auths = SelectMultipleField(
         label = "权限列表",validators = [DataRequired("请选择权限!")],
+        coerce = int,
+        choices = [(v.id,v.title) for v in Auth.query.all()],
         description = "权限列表",
         render_kw = {"class":"form-control"}
     )
     submit = SubmitField("提交",render_kw = {"class":"btn btn-primary"})
-
+#管理员表单
 class AdminForm(FlaskForm):
     name = StringField(
         label = "管理员名称",

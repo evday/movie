@@ -1,10 +1,18 @@
-#!/usr/bin/env python
-#-*- coding:utf-8 -*-
-#date:"2018-01-07,17:14"
+# coding:utf8
 from datetime import datetime
-from . import db
+from app import db
 
+"""
+from flask import Flask, render_template
+from flask_sqlalchemy import SQLAlchemy
+import pymysql
+import os
 
+app = Flask(__name__)
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:root@127.0.0.1:3306/movie"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
+db = SQLAlchemy(app)
+"""
 
 
 # 会员
@@ -184,7 +192,8 @@ class Oplog(db.Model):
     def __repr__(self):
         return "<Oplog %r>" % self.id
 
-'''
+
+"""
 if __name__ == "__main__":
     db.create_all()
 
@@ -204,4 +213,4 @@ if __name__ == "__main__":
     )
     db.session.add(admin)
     db.session.commit()
-'''
+"""

@@ -4,6 +4,7 @@
 import uuid
 import os
 import datetime
+import json
 
 from flask import redirect,render_template,flash,session,request,url_for
 from werkzeug.security import generate_password_hash
@@ -11,10 +12,10 @@ from werkzeug.utils import secure_filename
 from functools import wraps
 
 from . import home
-from .forms import RegisterForm,LoginForm,UserDetailForm,PwdForm
-from ..models import User,Userlog,Preview,Tag,Movie
-from .. import db,create_app
-app = create_app()
+from .forms import RegisterForm,LoginForm,UserDetailForm,PwdForm,CommentForm
+from ..models import User,Userlog,Preview,Tag,Movie,Comment,Moviecol
+from .. import db,app
+
 
 #登录装饰器
 def user_login_req(f):
@@ -146,9 +147,23 @@ def loginlog(page = None):
     page_data = Userlog.query.filter_by(user_id = int(session.get("user_id"))).order_by(User.addtime.desc()).paginate(page=page,per_page = 10)
     return render_template ("home/loginlog.html",page_data = page_data)
 
-@home.route("/moviefav")
+#电影收藏
+@home.route("/moviefav/add/",methods = ["GET"])
 def moviefav():
-    return render_template ("home/moviefav.html")
+    uid = request.args.get("uid",'')
+    mid = request.args.get("mid",'')
+    moviefav = Moviecol.query.filter_by(user_id = int(uid),movie_id = int(mid)).count()
+    if moviefav == 1:
+        data = dict(ok = 0)
+    if moviefav == 0:
+        moviefav = Moviecol(
+            user_id = int(uid),
+            movie_id = int(mid)
+        )
+        db.session.add(moviefav)
+        db.session.commit()
+        data = dict(ok = 1)
+    return json.dumps(data)
 
 #首页标签筛选
 @home.route("/<int:page>/",methods = ["GET"])
@@ -165,7 +180,7 @@ def index(page = None):
     if int(star) != 0:
         page_data = page_data.query.filter_by(star = int(star))
     #时间
-    time = page_data.args.get("time",0)
+    time = request.args.get("time",0)
     if int(time) != 0:
         if int(time) == 1:
             page_data = page_data.query.order_by(Movie.addtime.desc())
@@ -203,6 +218,44 @@ def animation():
     data = Preview.query.all()
     return render_template ("home/animation.html",data = data)
 
-@home.route("/search")
-def search():
-    return render_template ("home/search.html")
+
+#电影搜索
+@home.route("/search/<int:page>/")
+def search(page = None):
+    if not page:
+        page = 1
+    key = request.args.get("key","")
+    movie_count = Movie.query.filter(Movie.title.ilike("%"+key+"%")).count()
+    page_data = Movie.query.filter(Movie.title.ilike("%"+key+"%")).order_by(Movie.addtime.desc()).paginate(page = page,per_page = 10)
+    page_data.key = key
+    return render_template ("home/search.html",page_data = page_data,key = key,movie_count = movie_count)
+
+#电影播放
+@home.route("/play/<int:id>/<int:page>/",methods = ["GET","POST"])
+def play(id = None,page = None):
+    movie = Movie.query.join(Tag).filter(Tag.id == Movie.tag_id,Movie.id == int(id)).first_or_404()
+
+    if not page:
+        page = 1
+    page_data = Comment.query.join(Movie).join(User).filter(Comment.user_id == User.id,movie.id == Movie.id).order_by(Comment.addtime.desc()).paginate(page = page,per_page = 10)
+    #播放次数加1
+    movie.playnum = movie.playnum + 1
+    form = CommentForm()
+    if "user" in session and form.validate_on_submit():
+        data = form.data
+        comment = Comment(
+            content = data.get("content"),
+            movie_id = movie.id,
+            user_id = session["user_id"]
+        )
+        db.session.add(comment)
+        db.session.commit()
+        #评论数加1
+        movie.commentnum = movie.commentnum + 1
+        db.session.add(movie)
+        db.session.commit()
+        flash("评论成功!","ok")
+        return redirect(url_for("home.play",id = movie.id,page = 1))
+    db.session.add(movie)
+    db.session.commit()
+    return render_template("home/play.html",movie = movie,page_data = page_data,form = form)
