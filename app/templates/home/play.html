@@ -143,7 +143,7 @@
                     {{ form.csrf_token }}
                     {{ form.submit }}
                     &nbsp;
-                    <a class="btn btn-danger" id="btn-col"><span class="glyphicon glyphicon-heart"></span>&nbsp;收藏电影</a>
+                    <a class="btn btn-danger" id="btn-col"><span class="glyphicon glyphicon-heart"></span>&nbsp;{% if moviecol %}已收藏{% else %}收藏电影{% endif %}</a>
                 </form>
                 <div class="col-md-12">
                     <font style="color:green" id="show_col_msg"></font>

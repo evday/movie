@@ -76,8 +76,7 @@ def register():
     return render_template ("home/regist.html",form = form)
 
 #修改会员资料
-@home.route("/user",methods = ["GET","POST"])
-@user_login_req
+@home.route("/user/",methods = ["GET","POST"])
 def user():
     form = UserDetailForm()
     user = User.query.get(int(session["user_id"]))
@@ -85,37 +84,41 @@ def user():
     if request.method == "GET":
         form.name.data = user.name
         form.email.data = user.email
-        form.info.data = user.info
         form.phone.data = user.phone
+        form.info.data = user.info
     if form.validate_on_submit():
         data = form.data
         file_face = secure_filename(form.face.data.filename)
-        if not os.path.exists (app.config ["FC_DIR"]):
-            os.makedirs (app.config ["FC_DIR"])
-            os.chmod (app.config ["FC_DIR"],"rw") # 读写的权限
-        user_face = change_filename (file_face),
-        form.face.data.save(app.config["FC_DIR"]+user_face)
-        name_count = User.query.filter_by(name=data.get("name")).count()
-        if user.name != data.get("user") and name_count == 1:
-            flash("昵称已经存在!","err")
+        if not os.path.exists(app.config["FC_DIR"]):
+            os.makedirs(app.config["FC_DIR"])
+            os.chmod(app.config["FC_DIR"], "rw")
+        user.face = change_filename(file_face)
+        form.face.data.save(app.config["FC_DIR"] + user.face)
+
+        name_count = User.query.filter_by(name=data["name"]).count()
+        if data["name"] != user.name and name_count == 1:
+            flash("昵称已经存在！", "err")
             return redirect(url_for("home.user"))
-        email_count = User.query.filter_by (email = data.get ("email")).count ()
-        if user.email != data.get("email") and email_count == 1:
-            flash("邮箱已经存在!","err")
+
+        email_count = User.query.filter_by(email=data["email"]).count()
+        if data["email"] != user.email and email_count == 1:
+            flash("邮箱已经存在！", "err")
             return redirect(url_for("home.user"))
-        phone_count = User.query.filter_by (phone = data.get ("phone")).count ()
-        if user.phone != data.get("phone") and phone_count == 1:
-            flash("手机号已经存在!","err")
+
+        phone_count = User.query.filter_by(phone=data["phone"]).count()
+        if data["phone"] != user.phone and phone_count == 1:
+            flash("手机号码已经存在！", "err")
             return redirect(url_for("home.user"))
-        user.name = data.get("name")
-        user.email = data.get("email")
-        user.phone = data.get("phone")
-        user.info = data.get("info")
+
+        user.name = data["name"]
+        user.email = data["email"]
+        user.phone = data["phone"]
+        user.info = data["info"]
         db.session.add(user)
         db.session.commit()
-        flash("修改成功!","err")
+        flash("修改成功！", "ok")
         return redirect(url_for("home.user"))
-    return render_template ("home/user.html",form=form,user=user)
+    return render_template("home/user.html", form=form, user=user)
 
 #修改会员密码
 @home.route("/pwd",methods = ["GET","POST"])
@@ -134,9 +137,13 @@ def pwd():
         return redirect(url_for("home.logout"))
     return render_template ("home/pwd.html",form = form)
 
-@home.route("/comments")
-def comments():
-    return render_template ("home/comments.html")
+#会员评论
+@home.route("/comments/<int:page>/")
+def comments(page = None):
+    if not page:
+        page = 1
+    page_data = Comment.query.join(Movie).join(User).filter(Comment.user_id == session["user_id"],Comment.movie_id == Movie.id).order_by(Comment.addtime.desc()).paginate(page = page,per_page = 10)
+    return render_template ("home/comments.html",page_data = page_data)
 
 
 #会员登录日志
@@ -144,15 +151,16 @@ def comments():
 def loginlog(page = None):
     if not page:
         page = 1
-    page_data = Userlog.query.filter_by(user_id = int(session.get("user_id"))).order_by(User.addtime.desc()).paginate(page=page,per_page = 10)
+    page_data = Userlog.query.filter_by(user_id = int(session.get("user_id"))).order_by(Userlog.addtime.desc()).paginate(page=page,per_page = 10)
     return render_template ("home/loginlog.html",page_data = page_data)
 
-#电影收藏
+#添加电影收藏
 @home.route("/moviefav/add/",methods = ["GET"])
 def moviefav():
-    uid = request.args.get("uid",'')
-    mid = request.args.get("mid",'')
+    uid = request.args.get("uid","")
+    mid = request.args.get("mid","")
     moviefav = Moviecol.query.filter_by(user_id = int(uid),movie_id = int(mid)).count()
+    #等于1说明已经收藏过
     if moviefav == 1:
         data = dict(ok = 0)
     if moviefav == 0:
@@ -165,6 +173,12 @@ def moviefav():
         data = dict(ok = 1)
     return json.dumps(data)
 
+@home.route("/moviefav/<int:page>/",methods = ["GET"])
+def moviecol(page = None):
+    if not page:
+        page = 1
+    page_data = Moviecol.query.join(User).join(Movie).filter(Moviecol.movie_id == Movie.id,Moviecol.user_id == session["user_id"]).order_by(Moviecol.addtime.desc()).paginate(page=page,per_page = 10)
+    return render_template("home/moviecol.html",page_data = page_data)
 #首页标签筛选
 @home.route("/<int:page>/",methods = ["GET"])
 @home.route("/")
@@ -234,6 +248,8 @@ def search(page = None):
 @home.route("/play/<int:id>/<int:page>/",methods = ["GET","POST"])
 def play(id = None,page = None):
     movie = Movie.query.join(Tag).filter(Tag.id == Movie.tag_id,Movie.id == int(id)).first_or_404()
+    moviecol = Moviecol.query.join(Movie).join(User).filter(Moviecol.user_id == session["user_id"],Moviecol.movie_id == movie.id).count()
+
 
     if not page:
         page = 1
@@ -258,4 +274,4 @@ def play(id = None,page = None):
         return redirect(url_for("home.play",id = movie.id,page = 1))
     db.session.add(movie)
     db.session.commit()
-    return render_template("home/play.html",movie = movie,page_data = page_data,form = form)
+    return render_template("home/play.html",movie = movie,page_data = page_data,form = form, moviecol = moviecol)

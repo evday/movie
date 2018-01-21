@@ -206,7 +206,7 @@ def movie_list(page):
 @admin.route("/movie/del/<int:id>/",methods = ["GET"])
 
 def movie_del(id = None):
-    movie = Movie.query.get_or_404(int(id))
+    movie = Movie.query.get_or_404(id)
     db.session.delete(movie)
     db.session.commit()
     flash("删除电影成功!","ok")
@@ -217,7 +217,9 @@ def movie_del(id = None):
 
 def movie_edit(id=None):
     form = MovieForm()
-    movie = Movie.query.get_or_404(int(id))
+    form.logo.validators = []
+    form.url.validators = []
+    movie = Movie.query.get_or_404(id)
     if request.method == "GET":
         form.info.data = movie.info
         form.tag_id.data = movie.tag_id
@@ -289,7 +291,7 @@ def preview_list(page = None):
 @admin.route("/preview/del/<int:id>/",methods = ["GET"])
 
 def preview_del(id=None):
-    preview = Preview.query.get_or_404(int(id))
+    preview = Preview.query.get_or_404(id)
     db.session.add(preview)
     db.session.commit()
     flash("删除电影预告成功!",'ok')
@@ -300,7 +302,7 @@ def preview_del(id=None):
 def preview_edit(id):
     form = PreviewForm()
     form.logo.validators = [] #编辑的时候数据里是有值的，这里不需要做判断
-    preview = Preview.query.get_or_404(int(id))
+    preview = Preview.query.get_or_404(id)
     if request.method == "GET":
         form.title.data = preview.title
     if form.validate_on_submit():
@@ -330,14 +332,14 @@ def user_list(page = None):
 
 def user_view(id= None):
     if id:
-        user = User.query.get_or_404(int(id))
+        user = User.query.get_or_404(id)
         return render_template("admin/user_view.html",user=user)
 
 #删除会员
 @admin.route("/user/del/<int:id>/",methods =["GET"])
 
 def user_del(id = None):
-    user = User.query.get_or_404(id = int(id))
+    user = User.query.get_or_404(id)
     db.session.add(user)
     db.session.commit()
     flash("删除会员成功!","ok")
@@ -356,7 +358,7 @@ def comment_list(page = None):
 @admin.route("/comment/del/<int:id>/",methods = ["GET"])
 
 def comment_del(id=None):
-    comment = Comment.query.get_or_404(id=int(id))
+    comment = Comment.query.get_or_404(id)
     db.session.add(comment)
     db.session.commit()
     flash("删除评论成功!",'ok')
@@ -373,8 +375,8 @@ def moviefav_list(page=None):
 #电影收藏删除
 @admin.route("/moviefav/del/<int:id>/",methods = ["GET"])
 def moviefav_del(id = None):
-    moviefav = Moviecol.query.get_or_404(id = int(id))
-    db.session.add(moviefav)
+    moviefav = Moviecol.query.get_or_404(id)
+    db.session.delete(moviefav)
     db.session.commit()
     flash("删除收藏成功!","ok")
     return redirect(url_for("admin.moviefav_list",page =1 ))
@@ -428,7 +430,7 @@ def role_list(page = None):
 #删除角色
 @admin.route("/role/del/<int:id>/",methods = ["GET"])
 def role_del(id = None):
-    role = Role.query.get_or_404(id = int(id))
+    role = Role.query.get_or_404(id)
     db.session.delete(role)
     db.session.commit()
     flash("删除角色成功!","ok")
@@ -439,7 +441,7 @@ def role_del(id = None):
 
 def role_edit(id = None):
     form = RoleForm()
-    role = Role.query.get_or_404(id = int(id))
+    role = Role.query.get_or_404(id)
     if request.method == "GET":
         auths = role.auths
         form.auths.data = list(map(lambda x:int(x),auths.split(",")))
@@ -470,7 +472,7 @@ def auth_add():
 #删除权限
 @admin.route("/auth/del/<int:id>/",methods = ['GET'])
 def auth_del(id = None):
-    auth = Auth.query.get_or_404(id = int(id))
+    auth = Auth.query.get_or_404(id)
     db.session.add(auth)
     db.session.commit()
     flash("删除权限成功!","ok")
@@ -487,7 +489,7 @@ def auth_list(page = None):
 @admin.route("/auth/edit/<int:id>/",methods = ['GET','POST'])
 def auth_edit(id = None):
     form = AuthForm()
-    auth = AuthForm.query.get_or_404(id = int(id))
+    auth = AuthForm.query.get_or_404(id)
     if form.validate_on_submit():
         data = form.data
         auth.url = data.get("url")

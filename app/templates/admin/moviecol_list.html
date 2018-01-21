@@ -51,7 +51,7 @@
                             <td>{{ v.user.name }}</td>
                             <td>{{ v.addtime }}</td>
                             <td>
-                                <a href="{{ url_for('admin.moviecol_del',id=v.id) }}" class="label label-danger">删除</a>
+                                <a href="{{ url_for('admin.moviefav_del',id=v.id) }}" class="label label-danger">删除</a>
                             </td>
                         </tr>
                         {% endfor %}

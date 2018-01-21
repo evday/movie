@@ -46,7 +46,7 @@ class RegisterForm (FlaskForm):
 
     def validate_phone(self,field):
         phone = field.data
-        phone = User.quert.filter_by(phone=phone).count()
+        phone = User.query.filter_by(phone=phone).count()
         if phone:
             raise ValidationError("手机号已经存在!")
 
@@ -75,7 +75,7 @@ class UserDetailForm(FlaskForm):
         render_kw = {"class":"form-control","placeholder":"请输入邮箱!"}
     )
     phone = StringField(
-        label = "手机",validators = [DataRequired("请输入手机号码!"),Regexp("1[3,4,5,7,8]\\{9}",message = "手机格式不正确!")],
+        label = "手机",validators = [DataRequired("请输入手机号码!"),Regexp("1[34578]\\d{9}",message = "手机格式不正确!")],
         render_kw = {"class":"form-control","placeholder":"请输入手机号!"}
     )
     face = FileField(
@@ -85,7 +85,7 @@ class UserDetailForm(FlaskForm):
         label = "简介",validators = [DataRequired("请输入简介!")],
         render_kw = {"class":"form-control","rows":10}
     )
-    submit = SubmitField("确认修改!",render_kw = {"btn btn-success"})
+    submit = SubmitField("确认修改!",render_kw = {"class":"btn btn-success"})
 
 #会员密码修改
 class PwdForm(FlaskForm):

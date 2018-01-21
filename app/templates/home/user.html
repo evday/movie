@@ -2,10 +2,10 @@
 
 {% block css %}
 <style>
-    .col-lg-1, .col-lg-10, .col-lg-11, .col-lg-12, .col-lg-2, .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-6, .col-lg-7, .col-lg-8, .col-lg-9, .col-md-1, .col-md-10, .col-md-11, .col-md-12, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-sm-1, .col-sm-10, .col-sm-11, .col-sm-12, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6, .col-sm-7, .col-sm-8, .col-sm-9, .col-xs-1, .col-xs-10, .col-xs-11, .col-xs-12, .col-xs-2, .col-xs-3, .col-xs-4, .col-xs-5, .col-xs-6, .col-xs-7, .col-xs-8, .col-xs-9{
-            padding-right: 3px;
-            padding-left: 3px;
-        }
+    .col-lg-1, .col-lg-10, .col-lg-11, .col-lg-12, .col-lg-2, .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-6, .col-lg-7, .col-lg-8, .col-lg-9, .col-md-1, .col-md-10, .col-md-11, .col-md-12, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-sm-1, .col-sm-10, .col-sm-11, .col-sm-12, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6, .col-sm-7, .col-sm-8, .col-sm-9, .col-xs-1, .col-xs-10, .col-xs-11, .col-xs-12, .col-xs-2, .col-xs-3, .col-xs-4, .col-xs-5, .col-xs-6, .col-xs-7, .col-xs-8, .col-xs-9 {
+        padding-right: 3px;
+        padding-left: 3px;
+    }
 
 
 </style>
@@ -35,9 +35,9 @@
                         {{ form.name }}
                     </div>
                     {% for err in form.name.errors %}
-                        <div class="col-md-12">
-                            <font style="color:red">{{ err }}</font>
-                        </div>
+                    <div class="col-md-12">
+                        <font style="color:red">{{ err }}</font>
+                    </div>
                     {% endfor %}
                     <div class="form-group">
                         <label for="input_email">
@@ -47,9 +47,9 @@
                         {{ form.email }}
                     </div>
                     {% for err in form.email.errors %}
-                        <div class="col-md-12">
-                            <font style="color:red">{{ err }}</font>
-                        </div>
+                    <div class="col-md-12">
+                        <font style="color:red">{{ err }}</font>
+                    </div>
                     {% endfor %}
                     <div class="form-group">
                         <label for="input_phone">
@@ -59,9 +59,9 @@
                         {{ form.phone }}
                     </div>
                     {% for err in form.phone.errors %}
-                        <div class="col-md-12">
-                            <font style="color:red">{{ err }}</font>
-                        </div>
+                    <div class="col-md-12">
+                        <font style="color:red">{{ err }}</font>
+                    </div>
                     {% endfor %}
                     <div class="form-group">
                         <label for="input_face">
@@ -70,15 +70,16 @@
                         </label>
                         {{ form.face }}
                         {% if user.face %}
-                        <img src="{{ url_for('static',filename='uploads/users/'+user.face) }}" class="img-responsive img-rounded" style="width:100px;">
+                        <img src="{{ url_for('static',filename='uploads/users/'+user.face) }}"
+                            srcset="" class="img-responsive img-rounded" style="width:100px;">
                         {% else %}
                         <img data-src="holder.js/100x100" class="img-responsive img-rounded">
                         {% endif %}
                     </div>
                     {% for err in form.face.errors %}
-                        <div class="col-md-12">
-                            <font style="color:red">{{ err }}</font>
-                        </div>
+                    <div class="col-md-12">
+                        <font style="color:red">{{ err }}</font>
+                    </div>
                     {% endfor %}
                     <div class="form-group">
                         <label for="input_info">
@@ -88,9 +89,9 @@
                         {{ form.info }}
                     </div>
                     {% for err in form.info.errors %}
-                        <div class="col-md-12">
-                            <font style="color:red">{{ err }}</font>
-                        </div>
+                    <div class="col-md-12">
+                        <font style="color:red">{{ err }}</font>
+                    </div>
                     {% endfor %}
                     {{ form.csrf_token }}
                     {{ form.submit }}
@@ -103,8 +104,18 @@
 
 {% block js %}
 <script>
-    $(document).ready(function(){
+    $(document).ready(function () {
         $("#m-1").addClass("active");
+    });
+</script>
+<script>
+    $("#face").change(function () {
+        var ele_file = $(this)[0].files[0];//获取当前文件
+        var read = new FileReader();//实例化read对象
+        read.readAsDataURL(ele_file);//获取当前文件的url
+        read.onload = function () {
+            $(".img-rounded").attr("src", this.result);//this.result 就是read.readAsDataURL获取到的url路径
+        }
     });
 </script>
 {% endblock %}
